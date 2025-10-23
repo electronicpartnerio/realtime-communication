@@ -155,12 +155,11 @@ export class WebSocketAutopilot {
         const reg = this.registered.get(jobType);
         if (!reg) return;
         const preset = kind === "pending" ? reg.toast?.showPending
-            : kind === "success" ? reg.toast?.showSuccess
-                : reg.toast?.showError;
+            : kind === "success" ? reg.toast?.showSuccess  : reg.toast?.showError;
         if (!preset) return;
 
         const [key, variant] = preset;
-        const text = await this.resolveText(key);   // <<— keine params
+        const text = await t.g(key);   // <<— keine params
         const uid  = this.toastUid(jobType, kind);
 
         this.toast.hide(uid);
@@ -178,15 +177,11 @@ export class WebSocketAutopilot {
         if (!preset) return;
 
         const [key, variant] = preset;
-        const text = await this.resolveText(key, paramsMsg); // <<— params = msg
+        const text = await t.g(key, paramsMsg); // <<— params = msg
         const uid  = this.toastUid(jobType, kind);
 
         this.toast.hide(uid);
         this.toast.add(text, variant as any, uid);
-    };
-
-    private resolveText = async (key: string, params?: Record<string, any>) => {
-        return await t.g(key, params);
     };
 
     private toastUid = (jobType: string, kind: "pending" | "success" | "error") =>
