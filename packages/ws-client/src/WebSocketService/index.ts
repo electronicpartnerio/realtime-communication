@@ -1,8 +1,8 @@
-import type { JobRecord, Json, PendingRequest, SendOptions, WSOptions } from "../interface";
-import { JobTracker } from "../JobTracker";
-import { cryptoRandomId } from "../util/cryptoRandomId";
-import { waitFor } from "../util/waitFor";
-import { appendQuery } from "../util/appendQuery";
+import type {JobRecord, Json, PendingRequest, SendOptions, WSOptions} from "../interface";
+import {JobTracker} from "../JobTracker";
+import {cryptoRandomId} from "../util/cryptoRandomId";
+import {waitFor} from "../util/waitFor";
+import {appendQuery} from "../util/appendQuery";
 
 export class WebSocketService {
     private static _instance: WebSocketService | null = null;
@@ -74,7 +74,7 @@ export class WebSocketService {
         // If it's a long-running job, we expect an early ACK with jobId.
         // We'll resolve the promise when a final 'job.done|job.error' arrives OR when a direct reply arrives.
         const immediate = new Promise<T>((resolve, reject) => {
-            const req: PendingRequest = { resolve, reject };
+            const req: PendingRequest = {resolve, reject};
             if (options.timeoutMs) {
                 // @ts-ignore
                 req.timer = window.setTimeout(() => {
@@ -102,7 +102,7 @@ export class WebSocketService {
 
         // Attach a one-off augmentation to map ack/job events to this request
         const off = this.onMessage((msg) => {
-            const { type, correlationId: cid, jobId, downloadUrl, error } = msg || {};
+            const {type, correlationId: cid, jobId, downloadUrl, error} = msg || {};
             if (!cid && !jobId) return;
 
             // ACK: register job
@@ -178,7 +178,7 @@ export class WebSocketService {
         await this.ensureOpen();
         const pendings = this.jobTracker.pending();
         for (const j of pendings) {
-            this.sendRaw({ type: "job.subscribe", jobId: j.jobId });
+            this.sendRaw({type: "job.subscribe", jobId: j.jobId});
             // Optional: show pending toast again after reload
             if (j.toastId && j.toastTexts?.toastPendingText && this.opts.toast) {
                 this.opts.toast.showPending(j.toastId, j.toastTexts.toastPendingText);
@@ -216,7 +216,7 @@ export class WebSocketService {
         this.connecting = true;
         try {
             const token = this.opts.getAuthToken ? await this.opts.getAuthToken() : undefined;
-            const url = token ? appendQuery(this.opts.url, { token }) : this.opts.url;
+            const url = token ? appendQuery(this.opts.url, {token}) : this.opts.url;
             this.ws = new WebSocket(url, this.opts.protocols);
             this.ws.onopen = () => {
                 this.connecting = false;
@@ -269,7 +269,7 @@ export class WebSocketService {
         // @ts-ignore
         this.heartbeatTimer = window.setInterval(() => {
             if (this.ws?.readyState === WebSocket.OPEN) {
-                this.ws!.send(JSON.stringify({ type: "ping", ts: Date.now() }));
+                this.ws!.send(JSON.stringify({type: "ping", ts: Date.now()}));
             }
         }, this.opts.heartbeatMs);
     };

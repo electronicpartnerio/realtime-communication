@@ -6,8 +6,6 @@ import {t} from "@electronicpartnerio/ep-lit-translate";
 export class WebSocketAutopilot {
     private readonly cacheBaseKey: string;
     private readonly toast = toastFactory();
-    private readonly i18n = { g: async (k: string, p?: Record<string, any>) => k, ...(this?.opts?.i18n || {}) } as NonNullable<AutopilotGlobalOptions["i18n"]>;
-    private readonly i18nCache = new Map<string, string>();
     private readonly registered = new Map<string, RegisterOptions>(); // jobType -> RegisterOptions
     private readyWS = false;
 
@@ -22,30 +20,25 @@ export class WebSocketAutopilot {
             heartbeatMs: opts.heartbeatMs ?? 20_000,
             idleCloseMs: opts.idleCloseMs ?? 60_000,
             storageKey: opts.wsStorageKey ?? "ws.jobs",
-            // no toast adapter here – Autopilot handles toasts
         });
 
         // Lazy-attach handlers and resume; if eagerConnect, do it immediately
-        if (opts.eagerConnect) this.ensureWsReady().catch(() => {});
+        if (opts.eagerConnect) this.ensureWsReady().catch(() => {
+        });
     }
 
     /** Feature registration: only type + toast presets */
-    register = (ro: RegisterOptions) => {
+    register = async (ro: RegisterOptions) => {
         this.registered.set(ro.type, ro);
-        this.primeI18n(ro).catch(() => {});
-
-        this.ensureWsReady().then(() => {
-            this.showBootToasts(ro.type);
-        }).catch(() => {});
+        await this.ensureWsReady()
 
         return {
             send: async (payload: any) => {
                 // convention: "<type>.start"
-                const res = await WebSocketService.instance.sendRequest(
-                    { type: `${ro.type}.start`, payload },
-                    { trackJob: true }
+                return await WebSocketService.instance.sendRequest(
+                    {type: `${ro.type}.start`, payload},
+                    {trackJob: true}
                 );
-                return res;
             },
         };
     };
@@ -76,10 +69,10 @@ export class WebSocketAutopilot {
         const reg = this.registered.get(jobType);
         if (!reg) return;
 
-        const isAck     = fullType === 'ack'        || fullType === `${jobType}.ack`;
-        const isUpdate  = fullType === 'job.update' || fullType === `${jobType}.job.update`;
-        const isDone    = fullType === 'job.done'   || fullType === `${jobType}.job.done`;
-        const isError   = fullType === 'job.error'  || fullType === `${jobType}.job.error`;
+        const isAck = fullType === 'ack' || fullType === `${jobType}.ack`;
+        const isUpdate = fullType === 'job.update' || fullType === `${jobType}.job.update`;
+        const isDone = fullType === 'job.done' || fullType === `${jobType}.job.done`;
+        const isError = fullType === 'job.error' || fullType === `${jobType}.job.error`;
 
         if (isAck && jobId) {
             this.addPending(jobType, jobId);
@@ -111,8 +104,11 @@ export class WebSocketAutopilot {
     private cacheKey = (jobType: string) => `${this.cacheBaseKey}:${jobType}`;
 
     private readCache = (jobType: string): CacheShape => {
-        try { return JSON.parse(localStorage.getItem(this.cacheKey(jobType)) || "{}"); }
-        catch { return {}; }
+        try {
+            return JSON.parse(localStorage.getItem(this.cacheKey(jobType)) || "{}");
+        } catch {
+            return {};
+        }
     };
     private writeCache = (jobType: string, data: CacheShape) =>
         localStorage.setItem(this.cacheKey(jobType), JSON.stringify(data));
@@ -132,8 +128,8 @@ export class WebSocketAutopilot {
         const c = this.readCache(jobType);
         const last = c.lastOutcome;
         c.lastOutcome = last && last.type === type
-            ? { ...last, count: last.count + 1, at: Date.now() }
-            : { type, count: 1, at: Date.now() };
+            ? {...last, count: last.count + 1, at: Date.now()}
+            : {type, count: 1, at: Date.now()};
         c.lastOutcomeMsg = lastMsg;           // <<— kompletter msg
         this.writeCache(jobType, c);
     };
@@ -163,12 +159,12 @@ export class WebSocketAutopilot {
         const reg = this.registered.get(jobType);
         if (!reg) return;
         const preset = kind === "pending" ? reg.toast?.showPending
-            : kind === "success" ? reg.toast?.showSuccess  : reg.toast?.showError;
+            : kind === "success" ? reg.toast?.showSuccess : reg.toast?.showError;
         if (!preset) return;
 
         const [key, variant] = preset;
         const text = await t.g(key);   // <<— keine params
-        const uid  = this.toastUid(jobType, kind);
+        const uid = this.toastUid(jobType, kind);
 
         this.toast.hide(uid);
         this.toast.add(text, variant as any, uid);
@@ -186,7 +182,7 @@ export class WebSocketAutopilot {
 
         const [key, variant] = preset;
         const text = await t.g(key, paramsMsg); // <<— params = msg
-        const uid  = this.toastUid(jobType, kind);
+        const uid = this.toastUid(jobType, kind);
 
         this.toast.hide(uid);
         this.toast.add(text, variant as any, uid);
@@ -205,12 +201,12 @@ export class WebSocketAutopilot {
 
         await Promise.all(keys.map(async (k) => {
             const txt = await t.g(k);
-            this.i18nCache.set(this.kWithParams(k), txt);
-        })).catch(() => {});
+        })).catch(() => {
+        });
     };
 
     private kWithParams = (key: string, params?: Record<string, any>) =>
-        !params ? key : `${key}::${Object.keys(params).sort().map(k=>`${k}=${params[k]}`).join("&")}`;
+        !params ? key : `${key}::${Object.keys(params).sort().map(k => `${k}=${params[k]}`).join("&")}`;
 
     // ---------- utils ----------
 
