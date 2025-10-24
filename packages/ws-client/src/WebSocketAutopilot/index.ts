@@ -32,10 +32,8 @@ export class WebSocketAutopilot {
     /** Feature registration: only type + toast presets */
     register = (ro: RegisterOptions) => {
         this.registered.set(ro.type, ro);
-        // prefetch i18n texts best-effort
         this.primeI18n(ro).catch(() => {});
 
-        // Make sure WS has handlers set and resume pending jobs
         this.ensureWsReady().then(() => {
             this.showBootToasts(ro.type);
         }).catch(() => {});
@@ -68,29 +66,39 @@ export class WebSocketAutopilot {
     private handleMessage = async (msg: any) => {
         const fullType: string | undefined = msg?.type;
         const jobId: string | undefined = msg?.jobId;
-        const jobType = this.extractJobType(fullType);
+
+        let jobType = this.extractJobType(fullType);
+        if (!jobType && (fullType === 'ack' || fullType === 'job.update' || fullType === 'job.done' || fullType === 'job.error')) {
+            if (typeof msg?.jobType === 'string') jobType = msg.jobType; // Fallback
+        }
         if (!jobType) return;
 
         const reg = this.registered.get(jobType);
         if (!reg) return;
 
-        if (fullType === "ack" && jobId) {
+        const isAck     = fullType === 'ack'        || fullType === `${jobType}.ack`;
+        const isUpdate  = fullType === 'job.update' || fullType === `${jobType}.job.update`;
+        const isDone    = fullType === 'job.done'   || fullType === `${jobType}.job.done`;
+        const isError   = fullType === 'job.error'  || fullType === `${jobType}.job.error`;
+
+        if (isAck && jobId) {
             this.addPending(jobType, jobId);
-            await this.showSingleToast(jobType, "pending"); // ohne params
+            await this.showSingleToast(jobType, "pending");
             return;
         }
 
-        if (fullType === "job.update" && jobId) return;
+        if (isUpdate && jobId) {
+            return; // optional progress handling
+        }
 
-        if (fullType === "job.done" && jobId) {
+        if (isDone && jobId) {
             this.removePending(jobType, jobId);
-            // <<— speichere komplettes msg für Boot-Toast
             this.markOutcome(jobType, "success", msg);
-            await this.showOutcomeToast(jobType, "success", msg); // <<— params = msg
+            await this.showOutcomeToast(jobType, "success", msg);
             return;
         }
 
-        if (fullType === "job.error" && jobId) {
+        if (isError && jobId) {
             this.removePending(jobType, jobId);
             this.markOutcome(jobType, "error", msg);
             await this.showOutcomeToast(jobType, "error", msg);
