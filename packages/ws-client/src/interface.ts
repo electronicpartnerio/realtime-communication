@@ -69,3 +69,9 @@ export type DownloadInput =
     | { url: string; filename?: string; forceFetch?: boolean }
     | { base64: string; mime?: string; filename?: string }
     | { content: string | ArrayBuffer | Uint8Array; mime?: string; filename?: string };
+
+export type LogLevel = 'log' | 'warn' | 'error' | 'info';
+export type LoggerConfig = {
+    silent?: boolean;       // komplett ausschalten
+    env?: string;           // 'development' | 'production' | etc.
+};

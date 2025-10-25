@@ -13,6 +13,7 @@ import {safeRemoveFromSession} from "./util/safeRemoveFromSession";
 import {wsAutoWatcher} from "../wsAutoWatcher";
 import {safeParse} from "../util/safeParse";
 import {registry} from "../cache";
+import {logger} from "../util/logger";
 
 export const wsClient = (opts: WsServiceOptions): WsService | null => {
     const key = normalizeUrl(opts.url, opts.authToken, opts.appendAuthToQuery ?? true);
@@ -32,7 +33,7 @@ export const wsClient = (opts: WsServiceOptions): WsService | null => {
     let ws: WebSocket | null = new WS(key, opts.protocols);
 
     if(!ws) {
-        console.error(`[ws] listener "${key}" failed to initialize`);
+        logger.error(`[ws] listener "${key}" failed to initialize`);
         return null
     }
 
@@ -54,7 +55,7 @@ export const wsClient = (opts: WsServiceOptions): WsService | null => {
 
     const emit = <K extends EventName>(event: K, ev: EventMap[K]) => {
         for (const cb of listeners[event] as Set<ListenerOf<K>>) {
-            try { cb(ev); } catch (err) { console.error(`[ws] listener "${event}" failed`, err); }
+            try { cb(ev); } catch (err) { logger.error(`[ws] listener "${event}" failed`, err); }
         }
     };
 
