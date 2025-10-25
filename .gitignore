@@ -37,3 +37,4 @@ custom-elements.json
 *.tgz
 /iife/
 /umd/
+/packages/ws-client/__src/
