@@ -1,6 +1,6 @@
-import {watcherCache} from "../cache";
+import {watcherCache} from "../../cache";
 import {writeWatcherCache} from "./writeWatcherCache";
-import type {MessageState} from "../interface";
+import type {MessageState} from "../../interface";
 
 export const updateMessageState = (id: string, newState: MessageState): void => {
     if (!watcherCache.has(id)) return;

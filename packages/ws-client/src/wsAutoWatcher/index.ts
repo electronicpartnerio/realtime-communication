@@ -1,24 +1,37 @@
 import {watcherCache} from "../cache";
-import {readWatcherCache} from "../util/readWatcherCache";
+import {readWatcherCache} from "./util/readWatcherCache";
 import {restoreWsFromSession} from "../util/restoreWsFromSession";
 import {safeParse} from "../util/safeParse";
-import {writeWatcherCache} from "../util/writeWatcherCache";
-import type {WatchedMessage} from "../interface";
+import {writeWatcherCache} from "./util/writeWatcherCache";
+import type {WatchedMessage, WsResponse, WsResponseState} from "../interface";
 import {WS_WATCH_KEY} from "../constant";
-import {updateMessageState} from "../util/updateMessageState";
+import {updateMessageState} from "./util/updateMessageState";
+import {handleError} from "./handler/handleError";
+import {handleSuccess} from "./handler/handleSuccess";
+import {handlePending} from "./handler/handlePending";
 
 export const wsAutoWatcher = () => {
+
     const init = (): void => {
         readWatcherCache();
 
         const clients = restoreWsFromSession();
+        const messageStateMap: Record<WsResponseState, (d: WsResponse) => Promise<void>> = {
+            pending: handlePending,
+            error: handleError,
+            success: handleSuccess,
+        };
 
         clients.forEach(client => {
-            client.on('message', e => {
-                const msg = safeParse(e.data);
-                if (!msg?.id || !msg?.state) return;
+            client.on('message', async (e: MessageEvent) => {
+                const msg = safeParse<WsResponse>(e.data);
+                if (!msg?.uid || !msg?.state) return;
 
-                updateMessageState(msg.id, msg.state);
+                updateMessageState(msg.uid, msg.state);
+                const handler = messageStateMap[msg.state];
+                if (handler) {
+                    await handler(msg)
+                }
             });
         });
 

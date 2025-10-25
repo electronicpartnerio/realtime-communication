@@ -1,6 +1,6 @@
-import {WS_WATCH_KEY} from "../constant";
-import type {WatchedMessage} from "../interface";
-import {watcherCache} from "../cache";
+import {WS_WATCH_KEY} from "../../constant";
+import type {WatchedMessage} from "../../interface";
+import {watcherCache} from "../../cache";
 
 export const readWatcherCache = (): void => {
     try {
