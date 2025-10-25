@@ -1,6 +1,6 @@
-import {safeReadAll} from "./safeReadAll";
-import type {StoredEntry} from "../interface";
-import {WS_REGISTRY_KEY} from "../constant";
+import {safeReadAll} from "../../util/safeReadAll";
+import type {StoredEntry} from "../../interface";
+import {WS_REGISTRY_KEY} from "../../constant";
 
 export const safePersistToSession = (normalizedKey: string, entry: StoredEntry) => {
     try {

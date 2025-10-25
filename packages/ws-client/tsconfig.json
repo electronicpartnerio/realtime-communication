@@ -23,6 +23,6 @@
     "resolveJsonModule": true,
     "esModuleInterop": true
   },
-  "exclude": ["src/**/*.test.ts", "src/**/*.spec.ts"],
+  "exclude": ["src/**/*.test.ts", "src/**/*.spec.ts", "playground/**/*.ts", "playground/*.ts"],
   "include": ["./src",]
 }

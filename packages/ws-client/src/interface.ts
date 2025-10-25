@@ -40,7 +40,6 @@ export type StoredRegistry = Record<string, StoredEntry>;
 
 export type RegistryEntry = { client: WsService; ref: number };
 
-
 export type MessageState = 'send' | 'pending' | 'success' | 'error';
 
 export interface WatchedMessage {
@@ -50,5 +49,23 @@ export interface WatchedMessage {
     state: MessageState;
     timestamp: number;
 }
+export type WsResponseState = 'pending' | 'success' | 'error';
+export interface WsMessage<T = any> {
+    /** Eindeutige Zuordnung zwischen Request und Response */
+    uid: string;
+    /** Payload */
+    data: T;
+}
 
-export type WatchedRegistry = Record<string, WatchedMessage>;
+export interface WsResponse<T = any> extends WsMessage<T> {
+    /** Serverseitiger Status */
+    state: WsResponseState;
+    /** Optionale Toast-Nachricht (Schlüssel für Übersetzung oder Text) */
+    toast?: string;
+    timestamp?: number;
+}
+
+export type DownloadInput =
+    | { url: string; filename?: string; forceFetch?: boolean }
+    | { base64: string; mime?: string; filename?: string }
+    | { content: string | ArrayBuffer | Uint8Array; mime?: string; filename?: string };

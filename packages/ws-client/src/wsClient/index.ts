@@ -7,17 +7,18 @@ import type {
     WsServiceOptions,
     WSData
 } from "../interface";
-import {registry} from "../registry";
-import {normalizeUrl} from "../util/normalizeUrl";
-import {safePersistToSession} from "../util/safePersistToSession";
-import {safeRemoveFromSession} from "../util/safeRemoveFromSession";
+import {normalizeUrl} from "./util/normalizeUrl";
+import {safePersistToSession} from "./util/safePersistToSession";
+import {safeRemoveFromSession} from "./util/safeRemoveFromSession";
 import {wsAutoWatcher} from "../wsAutoWatcher";
 import {safeParse} from "../util/safeParse";
+import {registry} from "../cache";
 
 export const wsClient = (opts: WsServiceOptions): WsService | null => {
     const key = normalizeUrl(opts.url, opts.authToken, opts.appendAuthToQuery ?? true);
     const existing = registry.get(key);
-    if (existing) return existing;
+
+    if (existing) return existing.client;
 
     const WS = opts.wsImpl ?? WebSocket;
     const listeners: ListenersMap = {

@@ -1,5 +1,5 @@
-import {safeReadAll} from "./safeReadAll";
-import {WS_REGISTRY_KEY} from "../constant";
+import {safeReadAll} from "../../util/safeReadAll";
+import {WS_REGISTRY_KEY} from "../../constant";
 
 export const safeRemoveFromSession = (normalizedKey: string) => {
     try {
