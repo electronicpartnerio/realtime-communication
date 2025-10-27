@@ -1,7 +1,7 @@
 {
     "name": "@electronicpartnerio/realtime-communication-ws-client",
-    "version": "realtime communication websocket client",
-    "description": "FE utils lib",
+    "version": "0.0.1",
+    "description": "realtime communication websocket client",
     "homepage": "https://github.com/electronicpartnerio/realtime-communication#readme",
     "bugs": {
         "url": "https://github.com/electronicpartnerio/realtime-communication/issues"
@@ -14,7 +14,7 @@
     "author": "electronicpartner",
     "files": [
         "dist",
-        "iife"
+        "umd"
     ],
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",

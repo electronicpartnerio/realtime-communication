@@ -4,7 +4,7 @@ import pkg from './package.json';
 import { resolve } from 'path';
 
 export default defineConfig((_) => {
-    const name = 'EpTranslate';
+    const name = 'EpWsService';
     return {
         mode: 'umd',
         base: '',
@@ -13,11 +13,23 @@ export default defineConfig((_) => {
                 'top-level-await': true
             }
         },
+        optimizeDeps: {
+            exclude: ['@electronicpartnerio/uic', '@electronicpartnerio/ep-lit-translate']
+        },
         build: {
             outDir: 'umd',
             minify: true,
             sourcemap: true,
             emptyOutDir: true,
+            rollupOptions: {
+                external: ['@electronicpartnerio/uic', '@electronicpartnerio/ep-lit-translate'],
+                output: {
+                    globals: {
+                        '@electronicpartnerio/uic': 'EpUic',
+                        '@electronicpartnerio/ep-lit-translate': 'EpLitTranslate'
+                    }
+                }
+            },
             lib: {
                 entry: resolve(__dirname, 'src/index.ts'),
                 formats: ['umd'],

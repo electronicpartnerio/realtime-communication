@@ -38,3 +38,4 @@ custom-elements.json
 /iife/
 /umd/
 /packages/ws-client/__src/
+/packages/ws-client/umd/
