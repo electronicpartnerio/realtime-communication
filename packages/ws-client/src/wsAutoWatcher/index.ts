@@ -2,7 +2,7 @@ import {watcherCache} from "../cache";
 import {readWatcherCache} from "./util/readWatcherCache";
 import {restoreWsFromSession} from "../util/restoreWsFromSession";
 import {writeWatcherCache} from "./util/writeWatcherCache";
-import type {WatchedMessage, WsService} from "../interface";
+import type {WatchedMessage, WsLoosePayload, WsService} from "../interface";
 import {WS_WATCH_KEY} from "../constant";
 import {initClient} from "./util/initClient";
 import {logger} from "../util/logger";
@@ -22,7 +22,7 @@ export const wsAutoWatcher = () => {
     };
 
 
-    const register = (url: string, payload: any) => {
+    const register = (url: string, payload: WsLoosePayload) => {
         const {id, state} = payload;
 
         if(!id) return;
@@ -37,7 +37,7 @@ export const wsAutoWatcher = () => {
         writeWatcherCache();
     };
 
-    const update = (payload: any): void => {
+    const update = (payload: WsLoosePayload): void => {
         const {id, state} = payload;
 
         if(['success', 'error'].includes(state) && watcherCache.has(id)) {

@@ -75,3 +75,11 @@ export type LoggerConfig = {
     silent?: boolean;       // komplett ausschalten
     env?: string;           // 'development' | 'production' | etc.
 };
+
+export type WsLoosePayload = {
+    id: string;
+    state?: 'send' | 'pending' | 'success' | 'error';
+    toastPending?: string;
+    data?: any;
+    [k: string]: any;
+};

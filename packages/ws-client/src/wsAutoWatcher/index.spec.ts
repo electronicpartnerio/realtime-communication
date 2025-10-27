@@ -94,7 +94,7 @@ describe('wsAutoWatcher', () => {
 
     it('update() merged existierenden Eintrag (kein success/error) – (Hinweis: persist fehlt aktuell)', () => {
         const watcher = wsAutoWatcher();
-        watcher.register('wss://x', { id: 'm2' });
+        watcher.register('wss://x', { id: 'm2'});
 
         watcher.update({ id: 'm2', state: 'pending', payload: { a: 1 } });
 
