@@ -233,6 +233,120 @@ Jeder Handler verwendet automatisch den **`translateSafe()`**-Helper, um i18n-Ke
 └─────────────────────┘
 ```
 
+### Übersicht
+
+```mermaid
+flowchart LR
+  subgraph App [Host-App / Shell]
+    H[Header / Boot]
+    MF1[Microfrontend A]
+    MF2[Microfrontend B]
+  end
+
+  subgraph Storage [Browser Storage]
+    SS[(sessionStorage)]
+  end
+
+  subgraph WSLayer [WS-Layer]
+    WSC[wsClient()]
+    WAW[wsAutoWatcher()]
+    WC[(watcherCache - Map)]
+  end
+
+  subgraph Backend [Server]
+    S[(WebSocket Endpoint)]
+  end
+
+  H -->|init()| WAW
+  WAW -->|readWatcherCache()| SS
+  WAW -->|restoreWsFromSession()| WSC
+  WAW -->|initClient()| WSC
+  WAW <-->|maintainWatcherCache()| WC
+
+  MF1 -->|send(..., {persist})| WSC
+  MF2 -->|send(..., {persist})| WSC
+  WSC -->|safePersistToSession()| SS
+  WSC -->|register(payload)| WAW
+  WSC <-->|open/message/close/error| S
+
+  S -->|message: pending/success/error| WSC
+  WSC -->|emit('message')| WAW
+  WAW -->|updateMessageState()| WC
+  WAW -->|handlePending/Success/Error| UI[[Toasts / Actions]]
+  UI -->|download/alert/forceReload| User[User]
+```
+
+### Message-Lifecycle (Sequenzdiagramm)
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor Dev as Microfrontend
+  participant WCli as wsClient
+  participant WAw as wsAutoWatcher
+  participant WCache as watcherCache
+  participant SS as sessionStorage
+  participant WS as WebSocket Server
+  participant UI as UI (Toasts/Actions)
+
+  Dev->>WCli: send(JSON.stringify({ uid, data }), { persist:true })
+  WCli->>SS: safePersistToSession(url, entry)
+  WCli->>WAw: register(url, payload)
+  WAw->>WCache: set({ id, state:'send', ... })
+  WCli->>WS: send(payload)
+
+  WS-->>WCli: message { uid, state:'pending', toast? }
+  WCli->>WAw: emit('message')
+  WAw->>WCache: updateMessageState(uid, 'pending')
+  WAw->>UI: showToast('info', uid, toastPending)
+
+  WS-->>WCli: message { uid, state:'success'|'error', data?, toast? }
+  WCli->>WAw: emit('message')
+  alt success
+    WAw->>WCache: updateMessageState(uid, 'success')
+    WAw->>UI: showToast('success', uid, toastSuccess)
+    opt data.type === 'download'
+      WAw->>UI: triggerDownload(url/base64/content)
+    end
+    opt data.type === 'alert'
+      WAw->>UI: alert(msg)
+    end
+    opt data.type === 'forceReload'
+      WAw->>UI: confirm(msg) / reload()
+    end
+    WAw->>WCache: removeMessage(uid)
+  else error
+    WAw->>UI: hideToast(uid)
+    WAw->>UI: showToast('danger', uid, toastError)
+    WAw->>WCache: removeMessage(uid)
+  end
+```
+
+### Rehydration (Seitenwechsel/Reload)
+
+```mermaid
+flowchart TB
+  Start([Seitenstart / Reload])
+  Init[wsAutoWatcher.init()]
+  Read[readWatcherCache()]
+  Clients[restoreWsFromSession()]
+  Hook[initClient() on message]
+  Maintain[maintainWatcherCache()]
+
+  Start --> Init --> Read --> Clients --> Hook --> Maintain
+
+  subgraph Was passiert?
+    A1[Wiederaufbau aller WS-Verbindungen]
+    A2[Pending-States bekommen erneut Toasts]
+    A3[Abgelaufene/erledigte Messages werden bereinigt]
+  end
+
+  Maintain --> A1
+  Maintain --> A2
+  Maintain --> A3
+```
+
+
 ---
 
 ## Testen & Entwicklung
