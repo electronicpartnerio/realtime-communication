@@ -40,7 +40,7 @@ export const wsAutoWatcher = () => {
     const update = (payload: WsLoosePayload): void => {
         const {id, state} = payload;
 
-        if(['success', 'error'].includes(state) && watcherCache.has(id)) {
+        if(['success', 'error'].includes(String(state)) && watcherCache.has(id)) {
             unregister(id);
             return;
         }
