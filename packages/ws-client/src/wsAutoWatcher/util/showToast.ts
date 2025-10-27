@@ -1,11 +1,10 @@
 import type {TToastType} from "@electronicpartnerio/uic/bundle/component/toast/interface";
 import {translateSafe} from "./translateSafe";
-import {toastFactory} from "@electronicpartnerio/uic";
+import {toast} from "../../cache";
+import {TOAST_ID_PREFIX} from "../../constant";
 
-const toast = toastFactory();
-
-export const showToast = async (appearance: TToastType, uid: string, msg?: string, ) => {
+export const showToast = async (appearance: TToastType, id: string, msg?: string ) => {
     if (!msg) return;
     const transMsg: string = await translateSafe(msg)
-    toast.add(transMsg, appearance, `toast-${uid}-${Date.now()}`);
+    toast.add(transMsg, appearance, TOAST_ID_PREFIX + id);
 };

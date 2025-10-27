@@ -64,6 +64,6 @@
     },
     "dependencies": {
         "@electronicpartnerio/ep-lit-translate": "^0.0.6",
-        "@electronicpartnerio/uic": "file:/Users/d_wessner/projects/uic/electronicpartnerio-uic-0.0.60-flo-7.tgz"
+        "@electronicpartnerio/uic": "file:/Users/d_wessner/projects/uic/electronicpartnerio-uic-0.0.60-flo-8.tgz"
     }
 }

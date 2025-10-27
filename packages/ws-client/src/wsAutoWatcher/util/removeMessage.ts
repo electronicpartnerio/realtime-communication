@@ -1,7 +1,7 @@
 import {writeWatcherCache} from "./writeWatcherCache";
-import {watcherCache} from "../../cache";
+import { watcherCache} from "../../cache";
 
-export const removeMessage = (uid: string): void => {
-    watcherCache.delete(uid);
+export const removeMessage = (id: string): void => {
+    watcherCache.delete(id);
     writeWatcherCache();
 };

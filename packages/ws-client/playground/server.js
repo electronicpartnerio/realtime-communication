@@ -45,9 +45,9 @@ wss.on('connection', (ws, req) => {
             return;
         }
 
-        const { uid, data } = msg || {};
-        if (!uid) {
-            warn('Missing uid; ignoring message');
+        const { id, data } = msg || {};
+        if (!id) {
+            warn('Missing id; ignoring message');
             return;
         }
 
@@ -66,7 +66,7 @@ wss.on('connection', (ws, req) => {
         // 1) optional PENDING
         if (sim.pending) {
             const pending = {
-                uid,
+                id,
                 state: 'pending',
                 toast: toastPending,
                 data: {}, // leer lassen; Client interessiert State + Toast
@@ -83,7 +83,7 @@ wss.on('connection', (ws, req) => {
                     const successPayload = buildSuccessPayload(data);
 
                     const success = {
-                        uid,
+                        id,
                         state: 'success',
                         toast: toastSuccess,
                         data: { type, ...successPayload },
@@ -92,7 +92,7 @@ wss.on('connection', (ws, req) => {
                 } else {
                     // Fehlerpfad
                     const err = {
-                        uid,
+                        id,
                         state: 'error',
                         toast: toastError,
                         data: {

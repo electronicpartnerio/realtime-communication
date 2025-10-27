@@ -4,9 +4,11 @@ import {handleDownload} from "./download";
 import {handleAlert} from "./handleAlert";
 import {handleForceReload} from "./handleForceReload";
 import {removeMessage} from "../util/removeMessage";
+import {hideToast} from "../util/hideToast";
 
-export const handleSuccess = async ({uid, toast, data}: WsResponse) => {
-    await showToast('success', uid, toast);
+export const handleSuccess = async ({id, toast, data}: WsResponse) => {
+    hideToast(id);
+    await showToast('success', id, toast);
 
     const type = data?.type as 'download' | 'alert' | 'forceReload' | undefined;
     if (!type) return;
@@ -30,5 +32,5 @@ export const handleSuccess = async ({uid, toast, data}: WsResponse) => {
         }
     }
 
-    removeMessage(uid);
+    removeMessage(id);
 };

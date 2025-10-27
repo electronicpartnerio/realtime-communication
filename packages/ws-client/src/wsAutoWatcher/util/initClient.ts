@@ -14,9 +14,9 @@ const messageStateMap: Record<WsResponseState, (d: WsResponse) => Promise<void>>
 export const initClient = (client: WsService) => {
     client.on('message', async (e: MessageEvent) => {
         const msg = safeParse<WsResponse>(e.data);
-        if (!msg?.uid || !msg?.state) return;
+        if (!msg?.id || !msg?.state) return;
 
-        updateMessageState(msg.uid, msg.state);
+        updateMessageState(msg.id, msg.state);
         const handler = messageStateMap[msg.state];
         if (handler) {
             await handler(msg)

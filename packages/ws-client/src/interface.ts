@@ -52,7 +52,7 @@ export interface WatchedMessage {
 export type WsResponseState = 'pending' | 'success' | 'error';
 export interface WsMessage<T = any> {
     /** Eindeutige Zuordnung zwischen Request und Response */
-    uid: string;
+    id: string;
     /** Payload */
     data: T;
 }

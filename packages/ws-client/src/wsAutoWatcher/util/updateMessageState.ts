@@ -6,6 +6,7 @@ export const updateMessageState = (id: string, newState: MessageState): void => 
     if (!watcherCache.has(id)) return;
     const entry = watcherCache.get(id)!;
     entry.state = newState;
+console.log( 445 )
     watcherCache.set(id, entry);
     writeWatcherCache();
 };

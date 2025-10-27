@@ -53,15 +53,18 @@ export const wsClient = (opts: WsServiceOptions): WsService | null => {
         (listeners[event] as Set<ListenerOf<K>>).delete(cb);
     };
 
-    const emit = <K extends EventName>(event: K, ev: EventMap[K]) => {
-        for (const cb of listeners[event] as Set<ListenerOf<K>>) {
-            try { cb(ev); } catch (err) { logger.error(`[ws] listener "${event}" failed`, err); }
+    const emit = <K extends EventName>(evName: K, ev: EventMap[K]) => {
+        for (const cb of listeners[evName] as Set<ListenerOf<K>>) {
+            try {
+                cb(ev);
+            } catch (err) {
+                logger.error(`[ws] listener "${evName}" failed`, err);
+            }
         }
     };
 
     const send = (data: WSData, sendOpts?: SendOptions) => {
         if (!ws || ws.readyState !== WS.OPEN) throw new Error('WebSocket is not open');
-        // Falls persist aktiviert ist, Session + Watcher aktualisieren
         if (sendOpts?.persist) {
             safePersistToSession(key, {
                 url: opts.url,
@@ -70,7 +73,7 @@ export const wsClient = (opts: WsServiceOptions): WsService | null => {
                 appendAuthToQuery: opts.appendAuthToQuery ?? true,
             });
 
-            const payload = safeParse(data);
+            const {data: payload} = safeParse(data);
 
             if (payload) {
                 watcher.register(opts.url, payload);

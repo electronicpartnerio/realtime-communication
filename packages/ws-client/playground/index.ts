@@ -1,50 +1,49 @@
 import {customElement, property, state} from 'lit/decorators.js';
 import {html, LitElement} from 'lit';
-import {playgroundStyle} from "./style";
-import wsClient, {wsAutoWatcher} from "../src";
+import {playgroundStyle} from './style';
+import wsClient, {wsAutoWatcher} from '../src';
 
-const watcher = wsAutoWatcher();
+window.EP.wsWatcher = wsAutoWatcher();
+window.EP.wsWatcher.init();
 
 type Outcome = 'success' | 'error';
 type SuccessType = 'download' | 'alert' | 'forceReload' | '';
 
 @customElement('ep-playground')
 export class Playground extends LitElement {
-    static styles = [ playgroundStyle];
+    static styles = [playgroundStyle];
 
-    // ---- Konfig ----
     @property({type: String}) wsUrl = 'ws://localhost:8080/realtime';
     @property({type: String}) authToken = '';
 
-    // ---- UI State ----
     @state() private connecting = false;
     @state() private connected = false;
 
-    // Simulation/Antwort-Steuerung
+    // Defaults für „Form“-Bereich (bleibt erhalten)
     @state() private pending = true;
     @state() private outcome: Outcome = 'success';
     @state() private delayMs = 800;
 
-    // Success-spezifisch
     @state() private successType: SuccessType = 'download';
     @state() private downloadVariant: 'url' | 'base64' | 'content' | 'auto' = 'auto';
     @state() private filename = '';
     @state() private url = 'https://www.dev.ep-infonet.com/assets/img/y_Qx54tf38-400.avif';
-    @state() private base64 = 'SGVsbG8sIFdvcmxkIQ=='; // "Hello, World!"
+    @state() private base64 = 'SGVsbG8sIFdvcmxkIQ==';
     @state() private mime = 'text/plain';
     @state() private content = 'id,name\n1,Alice\n2,Bob\n';
-    @state() private message = 'download.ready'; // alert/forceReload msg (oder Toast-Text)
+    @state() private message = 'download.ready';
 
-    // Toast Keys
     @state() private toastPending = 'download.starting';
     @state() private toastSuccess = 'download.ready';
     @state() private toastError = 'download.error';
 
     private client: ReturnType<typeof wsClient> | null = null;
+    private msgListenerAttached = false;
 
     private pushLog = (msg: string, obj?: any) => {
         const time = new Date().toISOString().split('T')[1].replace('Z', '');
-        console.log(  `${time}  ${msg} obj:`, obj )
+        // eslint-disable-next-line no-console
+        console.log(`${time}  ${msg}`, obj ?? '');
     };
 
     private connect = async () => {
@@ -55,7 +54,19 @@ export class Playground extends LitElement {
                 url: this.wsUrl,
                 authToken: this.authToken || undefined,
             });
-            await this.client?.ready();
+            if (!this.msgListenerAttached) {
+                this.client.on('message', (e) => {
+                    // Alle eingehenden Server-Messages in der Konsole zeigen (z. B. „Chat“-ähnlich)
+                    try {
+                        const data = JSON.parse((e as MessageEvent).data);
+                        console.log('[WS message]', data);
+                    } catch {
+                        console.log('[WS message]', (e as MessageEvent).data);
+                    }
+                });
+                this.msgListenerAttached = true;
+            }
+            await this.client.ready();
             this.connected = true;
             this.pushLog('Connected', {url: this.wsUrl});
         } catch (e) {
@@ -80,48 +91,62 @@ export class Playground extends LitElement {
         this.pushLog('Hard close (storage cleared)');
     };
 
-    private send = async () => {
-        if (!this.client) await this.connect();
-        if (!this.client) return;
-
-        const uid = crypto.randomUUID();
+    private buildPayload = (overrides?: Partial<{
+        type: SuccessType;
+        pending: boolean;
+        outcome: Outcome;
+        delayMs: number;
+        variant: 'url' | 'base64' | 'content' | 'auto';
+        msg: string;
+    }>) => {
+        const id = crypto.randomUUID();
+        const type = overrides?.type ?? this.successType;
+        const pending = overrides?.pending ?? this.pending;
+        const outcome = overrides?.outcome ?? this.outcome;
+        const delayMs = overrides?.delayMs ?? this.delayMs;
 
         const data: any = {
-            sim: {
-                pending: this.pending,
-                outcome: this.outcome,
-                delayMs: this.delayMs,
-            },
+            sim: { pending, outcome, delayMs },
             toastPending: this.toastPending,
             toastSuccess: this.toastSuccess,
             toastError: this.toastError,
         };
 
-        // Success-Typ einbetten
-        if (this.successType) {
-            data.type = this.successType;
-            if (this.successType === 'download') {
-                if (this.downloadVariant === 'url') {
+        if (type) {
+            data.type = type;
+            if (type === 'download') {
+                const variant = overrides?.variant ?? this.downloadVariant;
+                if (variant === 'url') {
                     data.url = this.url;
-                } else if (this.downloadVariant === 'base64') {
+                    data.filename = this.filename || '';
+                } else if (variant === 'base64') {
                     data.base64 = this.base64;
                     data.mime = this.mime;
                     data.filename = this.filename || '';
-                } else if (this.downloadVariant === 'content') {
+                } else if (variant === 'content') {
                     data.content = this.content;
                     data.mime = this.mime;
                     data.filename = this.filename || '';
                 }
-                // 'auto' → Server liefert Demo-CSV, kein Zusatz nötig
-            } else if (this.successType === 'alert' || this.successType === 'forceReload') {
-                data.msg = this.message;
+                // 'auto' → Server liefert Demo-CSV
+            } else if (type === 'alert' || type === 'forceReload') {
+                data.msg = overrides?.msg ?? this.message;
             }
         }
 
-        const payload = {uid, data};
+        return { id, data };
+    };
 
+    private ensureConnected = async () => {
+        if (!this.client || !this.client.isOpen()) {
+            await this.connect();
+        }
+        return this.client && this.client.isOpen();
+    };
+
+    private sendPayload = async (payload: {id: string; data: any}) => {
+        if (!(await this.ensureConnected())) return;
         try {
-            // Persistieren & Watcher registrieren
             this.client!.send(JSON.stringify(payload), {persist: true});
             this.pushLog('Sent', payload);
         } catch (e) {
@@ -130,8 +155,51 @@ export class Playground extends LitElement {
         }
     };
 
+    // —— Quick Sections —— //
+
+    // 1) Nur Typen (download / alert / forceReload) – mit vernünftigen Defaults
+    private sendType = async (type: SuccessType) => {
+        const payload = this.buildPayload({
+            type,
+            pending: type === 'download',  // Download zeigt schön pending→success per Default
+            outcome: 'success',
+            delayMs: type === 'download' ? 500 : 0,
+            variant: 'auto',
+            msg: type === 'alert' ? 'alert.hello' : type === 'forceReload' ? 'reload.confirm' : this.message,
+        });
+        await this.sendPayload(payload);
+    };
+
+    // 2) States durchgehen (unabhängig vom Typ) – wir nutzen type:'' oder aktuellen Type
+    //    Für einfache Konsolen-Tests ohne Aktionen kannst du type:'' setzen.
+    private sendState = async (state: 'pending->success' | 'pending->error' | 'success' | 'error') => {
+        const map = {
+            'pending->success': {pending: true, outcome: 'success' as Outcome, delayMs: 800},
+            'pending->error':   {pending: true, outcome: 'error'   as Outcome, delayMs: 800},
+            'success':          {pending: false, outcome: 'success' as Outcome, delayMs: 0},
+            'error':            {pending: false, outcome: 'error'   as Outcome, delayMs: 0},
+        }[state];
+
+        // Für „nur Console“ ohne Actions: type leer lassen
+        const payload = this.buildPayload({ type: '', ...map });
+        // Optionale freie Textantwort (Server zeigt sie z. B. als toast/msg); hier egal → wir loggen nur
+        payload.data.msg = `state.${state}`;
+        await this.sendPayload(payload);
+    };
+
+    // 3) Timeouts (0 / 100 / 1000 / 4000) – nutzt aktuellen Typ/Outcome/Pending
+    private sendTimeout = async (delayMs: number) => {
+        const payload = this.buildPayload({ delayMs });
+        await this.sendPayload(payload);
+    };
+
+    // Form-„Send“ wie gehabt
+    private send = async () => {
+        const payload = this.buildPayload();
+        await this.sendPayload(payload);
+    };
+
     render() {
-        console.log( 11 )
         return html`
             <div class="grid">
                 <div class="row card">
@@ -154,6 +222,65 @@ export class Playground extends LitElement {
                         </button>
                         <span class="muted">${this.connected ? 'Status: connected' : (this.connecting ? 'Status: connecting…' : 'Status: idle')}</span>
                     </div>
+                </div>
+
+
+                <!-- Sektion 1: Nur Typen -->
+                <div class="row card">
+                    <fieldset class="col-12">
+                        <legend>Typen</legend>
+                        <div class="row">
+                            <div class="col-12 stack">
+                                <button class="btn" @click=${() => this.sendType('download')}>download
+                                    (pending→success)
+                                </button>
+                                <button class="btn" @click=${() => this.sendType('alert')}>alert (konsole & ggf.
+                                    toast)
+                                </button>
+                                <button class="btn" @click=${() => this.sendType('forceReload')}>forceReload (konsole &
+                                    ggf. confirm)
+                                </button>
+                            </div>
+                        </div>
+                        <span class="muted">Sendet nur den jeweiligen <code>data.type</code> mit sinnvollen Defaults.</span>
+                    </fieldset>
+                </div>
+
+                <!-- Sektion 2: States -->
+                <div class="row card">
+                    <fieldset class="col-12">
+                        <legend>States</legend>
+                        <div class="row">
+                            <div class="col-12 stack">
+                                <button class="btn" @click=${() => this.sendState('pending->success')}>pending →
+                                    success
+                                </button>
+                                <button class="btn" @click=${() => this.sendState('pending->error')}>pending → error
+                                </button>
+                                <button class="btn" @click=${() => this.sendState('success')}>success (no pending)
+                                </button>
+                                <button class="btn red" @click=${() => this.sendState('error')}>error (no pending)
+                                </button>
+                            </div>
+                        </div>
+                        <span class="muted">Für reine Console-Tests wird hier <code>type:""</code> gesendet, damit keine Actions greifen.</span>
+                    </fieldset>
+                </div>
+
+                <!-- Sektion 3: Timeouts -->
+                <div class="row card">
+                    <fieldset class="col-12">
+                        <legend>Timeouts</legend>
+                        <div class="row">
+                            <div class="col-12 stack">
+                                <button class="btn" @click=${() => this.sendTimeout(0)}>0 ms</button>
+                                <button class="btn" @click=${() => this.sendTimeout(100)}>100 ms</button>
+                                <button class="btn" @click=${() => this.sendTimeout(1000)}>1000 ms</button>
+                                <button class="btn" @click=${() => this.sendTimeout(4000)}>4000 ms</button>
+                            </div>
+                        </div>
+                        <span class="muted">Nutzt aktuelle Auswahl von Typ/State, ändert nur die Verzögerung.</span>
+                    </fieldset>
                 </div>
 
                 <div class="row card">
@@ -275,5 +402,11 @@ export class Playground extends LitElement {
                 </div>
             </div>
         `;
+    }
+}
+
+declare global {
+    interface HTMLElementTagNameMap {
+        'ep-playground': Playground;
     }
 }
