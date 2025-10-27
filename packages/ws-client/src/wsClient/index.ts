@@ -3,9 +3,9 @@ import type {
     EventName, ListenerOf,
     ListenersMap,
     SendOptions,
-    WsService,
+    WsServiceFunction,
     WsServiceOptions,
-    WSData
+    WSData, WsService
 } from "../interface";
 import {normalizeUrl} from "./util/normalizeUrl";
 import {safePersistToSession} from "./util/safePersistToSession";
@@ -15,7 +15,7 @@ import {safeParse} from "../util/safeParse";
 import {registry} from "../cache";
 import {logger} from "../util/logger";
 
-export const wsClient = (opts: WsServiceOptions): WsService | null => {
+export const wsClient = (opts: WsServiceOptions): WsService => {
     const key = normalizeUrl(opts.url, opts.authToken, opts.appendAuthToQuery ?? true);
     const existing = registry.get(key);
 
@@ -128,7 +128,7 @@ export const wsClient = (opts: WsServiceOptions): WsService | null => {
     const isOpen = () => !!ws && ws.readyState === WS.OPEN;
     const socket = () => ws;
 
-    const client: WsService = { send, ready, close, hardClose, release, on, off, isOpen, socket };
+    const client: WsServiceFunction = { send, ready, close, hardClose, release, on, off, isOpen, socket };
     registry.set(key, { client, ref: 1 });
     return client;
 };

@@ -2,14 +2,14 @@ import {watcherCache} from "../cache";
 import {readWatcherCache} from "./util/readWatcherCache";
 import {restoreWsFromSession} from "../util/restoreWsFromSession";
 import {writeWatcherCache} from "./util/writeWatcherCache";
-import type {WatchedMessage, WsLoosePayload, WsService} from "../interface";
+import type {WatchedMessage, WsLoosePayload, WsServiceFunction} from "../interface";
 import {WS_WATCH_KEY} from "../constant";
 import {initClient} from "./util/initClient";
 import {logger} from "../util/logger";
 import {maintainWatcherCache} from "./util/maintainWatcherCache";
 
 export const wsAutoWatcher = () => {
-    let clients: WsService[];
+    let clients: WsServiceFunction[];
 
     const init = (): void => {
         readWatcherCache();

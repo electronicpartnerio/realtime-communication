@@ -18,8 +18,7 @@ export interface WsServiceOptions {
     /** Dependency injection for tests (e.g., a MockWebSocket) */
     wsImpl?: typeof WebSocket;
 }
-
-export interface WsService {
+export interface WsServiceFunction {
     send: (data: WSData, sendOpts?: SendOptions) => void;
     ready: () => Promise<void>;
     close: (soft?: boolean, code?: number, reason?: string) => void;
@@ -31,6 +30,8 @@ export interface WsService {
     socket: () => WebSocket | null;
 }
 
+export type WsService = WsServiceFunction | null;
+
 export interface SendOptions {
     persist?: boolean; // beim Senden in Session speichern
 }
@@ -38,7 +39,7 @@ export interface SendOptions {
 export type StoredEntry = WsServiceOptions;
 export type StoredRegistry = Record<string, StoredEntry>;
 
-export type RegistryEntry = { client: WsService; ref: number };
+export type RegistryEntry = { client: WsServiceFunction; ref: number };
 
 export type MessageState = 'send' | 'pending' | 'success' | 'error';
 
