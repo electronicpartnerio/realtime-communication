@@ -248,9 +248,9 @@ flowchart LR
   end
 
   subgraph WSLayer [WS-Layer]
-    WSC[wsClient()]
-    WAW[wsAutoWatcher()]
-    WC[(watcherCache - Map)]
+    WSC["wsClient"]
+    WAW["wsAutoWatcher"]
+    WC["watcherCache (Map)"]
   end
 
   subgraph Backend [Server]
@@ -327,11 +327,11 @@ sequenceDiagram
 ```mermaid
 flowchart TB
   Start([Seitenstart / Reload])
-  Init[wsAutoWatcher.init()]
-  Read[readWatcherCache()]
-  Clients[restoreWsFromSession()]
-  Hook[initClient() on message]
-  Maintain[maintainWatcherCache()]
+  Init["wsAutoWatcher.init"]
+  Read["readWatcherCache"]
+  Clients["restoreWsFromSession"]
+  Hook["initClient on message"]
+  Maintain["maintainWatcherCache"]
 
   Start --> Init --> Read --> Clients --> Hook --> Maintain
 
