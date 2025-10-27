@@ -257,7 +257,7 @@ flowchart LR
     S[(WebSocket Endpoint)]
   end
 
-  H -->|"init()""| WAW
+  H -->|"init()"| WAW
   WAW -->|"readWatcherCache()"| SS
   WAW -->|"restoreWsFromSession()"| WSC
   WAW -->|"initClient()"| WSC
