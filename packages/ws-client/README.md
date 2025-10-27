@@ -257,11 +257,11 @@ flowchart LR
     S[(WebSocket Endpoint)]
   end
 
-  H -->|init()| WAW
-  WAW -->|readWatcherCache()| SS
-  WAW -->|restoreWsFromSession()| WSC
-  WAW -->|initClient()| WSC
-  WAW <-->|maintainWatcherCache()| WC
+  H -->|"init()""| WAW
+  WAW -->|"readWatcherCache()"| SS
+  WAW -->|"restoreWsFromSession()"| WSC
+  WAW -->|"initClient()"| WSC
+  WAW <-->|"maintainWatcherCache()"| WC
 
   MF1 -->|send(..., {persist})| WSC
   MF2 -->|send(..., {persist})| WSC
