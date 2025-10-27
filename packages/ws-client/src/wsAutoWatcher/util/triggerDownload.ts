@@ -1,10 +1,11 @@
-export const triggerDownload = (blobUrl: string, filename: string) => {
+export const triggerDownload = (href: string, filename: string, revoke: boolean = true) => {
     const a = document.createElement('a');
-    a.href = blobUrl;
+    a.href = href;
     a.download = filename;
     a.rel = 'noopener';
     document.body.appendChild(a);
     a.click();
     a.remove();
-    URL.revokeObjectURL(blobUrl);
+
+    revoke && URL.revokeObjectURL(href);
 };

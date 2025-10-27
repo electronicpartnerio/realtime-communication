@@ -3,7 +3,7 @@ import {WS_REGISTRY_KEY} from "../constant";
 
 export const safeReadAll = (): StoredRegistry => {
     try {
-        if (typeof window === 'undefined' || !window.sessionStorage) return {};
+        if (!window.sessionStorage) return {};
         const raw = sessionStorage.getItem(WS_REGISTRY_KEY);
         if (!raw) return {};
         const parsed = JSON.parse(raw) as StoredRegistry;

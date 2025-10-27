@@ -1,11 +1,20 @@
-export const guessFilename = (filename?: string, url?: string) => {
+export const guessFilename = (filename?: string, url?: string): string => {
     if (filename) return filename;
-    try {
-        if (url) {
-            const u = new URL(url, location.href);
-            const last = u.pathname.split('/').filter(Boolean).pop();
-            if (last) return last;
+
+    if (url) {
+        try {
+            const last = url.split('/').filter(Boolean).pop();
+            if (last) {
+                const decoded = decodeURIComponent(last);
+
+                const clean = decoded.split(/[?#]/)[0];
+
+                if (clean.trim()) return clean.trim();
+            }
+        } catch {
+            // ignorieren → fallback
         }
-    } catch {}
+    }
+
     return `download-${Date.now()}`;
 };

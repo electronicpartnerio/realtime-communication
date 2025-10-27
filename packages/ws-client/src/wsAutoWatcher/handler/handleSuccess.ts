@@ -1,6 +1,6 @@
 import type {WsResponse} from "../../interface";
 import {showToast} from "../util/showToast";
-import {handleDownload} from "./download";
+import {handleDownload} from "./handleDownload";
 import {handleAlert} from "./handleAlert";
 import {handleForceReload} from "./handleForceReload";
 import {removeMessage} from "../util/removeMessage";

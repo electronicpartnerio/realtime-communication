@@ -73,11 +73,9 @@ export const wsClient = (opts: WsServiceOptions): WsService | null => {
                 appendAuthToQuery: opts.appendAuthToQuery ?? true,
             });
 
-            const {data: payload} = safeParse(data);
-
-            if (payload) {
-                watcher.register(opts.url, payload);
-            }
+            const parsed = safeParse<any>(data);
+            const payload = parsed?.data;
+            if (payload) watcher.register(opts.url, payload);
         }
 
         ws.send(data);

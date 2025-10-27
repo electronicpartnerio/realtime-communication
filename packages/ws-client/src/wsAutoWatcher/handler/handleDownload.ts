@@ -19,13 +19,7 @@ export const handleDownload = async (input: DownloadInput): Promise<void> => {
             }
         }
         // Direkt-Link mit download-Attribut (funktioniert, wenn Server das zulässt)
-        const a = document.createElement('a');
-        a.href = input.url;
-        a.download = filename;
-        a.rel = 'noopener';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        triggerDownload(input.url, filename, false);
         return;
     }
 
@@ -44,8 +38,10 @@ export const handleDownload = async (input: DownloadInput): Promise<void> => {
     // Fall 3: Rohinhalt (Text/Binary)
     if ('content' in input) {
         const mime = input.mime ?? 'application/octet-stream';
+        // @ts-ignore
         const blob =
             input.content instanceof ArrayBuffer || input.content instanceof Uint8Array
+                // @ts-ignore
                 ? new Blob([input.content], { type: mime })
                 : new Blob([String(input.content)], { type: mime });
         const url = URL.createObjectURL(blob);

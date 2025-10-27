@@ -7,6 +7,8 @@ export const restoreWsFromSession = (): WsService[] => {
     const clients: WsService[] = [];
 
     Object.entries(data).forEach(([_, entry]: [string, StoredEntry]) => {
+        if(!entry) return;
+
         const client = wsClient({
             url: entry.url,
             authToken: entry.authToken,
