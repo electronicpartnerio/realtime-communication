@@ -272,8 +272,8 @@ flowchart LR
   S -->|"message: pending/success/error"| WSC
   WSC -->|"emit('message')"| WAW
   WAW -->|"updateMessageState()"| WC
-  WAW -->|"handlePending/Success/Error"| "UI[Toasts / Actions]"
-  UI -->|"download/alert/forceReload"| "User[User]"
+  WAW -->|"handlePending/Success/Error"| "UI-Toasts / Actions"
+  UI -->|"download/alert/forceReload"| "User"
 ```
 
 ### Message-Lifecycle (Sequenzdiagramm)
