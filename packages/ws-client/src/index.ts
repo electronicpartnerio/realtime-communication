@@ -1,3 +1,10 @@
+import { wsAutoWatcher } from "./wsAutoWatcher";
+import { wsClient } from "./wsClient";
 
-export {wsAutoWatcher}  from "./wsAutoWatcher";
-export {wsClient, wsClient as default} from "./wsClient";
+export {wsAutoWatcher, wsClient};
+export default wsClient;
+
+const wsWatcher = wsAutoWatcher();
+wsWatcher.init();
+
+window.EP.wsWatcher = wsWatcher;
