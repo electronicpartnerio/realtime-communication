@@ -28,7 +28,9 @@ export const wsClient = (opts: WsServiceOptions): WsService | null => {
         close: new Set(),
         error: new Set(),
     };
-    const watcher = wsAutoWatcher();
+    let watcher: ReturnType<typeof wsAutoWatcher> | null = null;
+
+    const ensureWatcher = () => watcher ??= wsAutoWatcher();
 
     let ws: WebSocket | null = new WS(key, opts.protocols);
 
@@ -75,7 +77,7 @@ export const wsClient = (opts: WsServiceOptions): WsService | null => {
 
             const parsed = safeParse<any>(data);
             const payload = parsed?.data;
-            if (payload) watcher.register(opts.url, payload);
+            if (payload) ensureWatcher().register(opts.url, payload);
         }
 
         ws.send(data);
