@@ -263,17 +263,17 @@ flowchart LR
   WAW -->|"initClient()"| WSC
   WAW <-->|"maintainWatcherCache()"| WC
 
-  MF1 -->|send(..., {persist})| WSC
-  MF2 -->|send(..., {persist})| WSC
-  WSC -->|safePersistToSession()| SS
-  WSC -->|register(payload)| WAW
-  WSC <-->|open/message/close/error| S
+  MF1 -->|"send(..., {persist})"| WSC
+  MF2 -->|"send(..., {persist})"| WSC
+  WSC -->|"safePersistToSession()"| SS
+  WSC -->|"register(payload)"| WAW
+  WSC <-->|"open/message/close/error"| S
 
-  S -->|message: pending/success/error| WSC
-  WSC -->|emit('message')| WAW
-  WAW -->|updateMessageState()| WC
-  WAW -->|handlePending/Success/Error| UI[[Toasts / Actions]]
-  UI -->|download/alert/forceReload| User[User]
+  S -->|"message: pending/success/error"| WSC
+  WSC -->|"emit('message')"| WAW
+  WAW -->|"updateMessageState()"| WC
+  WAW -->|"handlePending/Success/Error"| "UI[[Toasts / Actions]]"
+  UI -->|"download/alert/forceReload"| "User[User]"
 ```
 
 ### Message-Lifecycle (Sequenzdiagramm)
