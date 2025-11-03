@@ -1,11 +1,20 @@
 import {customElement, property, state} from 'lit/decorators.js';
 import {html, LitElement} from 'lit';
 import {playgroundStyle} from './style';
-import wsClient from '../src';
+import wsClient, {wsAutoWatcher} from '../src';
 import {logger} from "../src/util/logger";
 
 type Outcome = 'success' | 'error';
 type SuccessType = 'download' | 'alert' | 'forceReload' | '';
+
+/**
+ * Should be placed somewhere in the HTML header
+ */
+const wsWatcher = wsAutoWatcher();
+wsWatcher.init();
+window.EP.wsWatcher = wsWatcher;
+
+
 
 @customElement('ep-playground')
 export class Playground extends LitElement {
@@ -148,7 +157,6 @@ export class Playground extends LitElement {
             this.pushLog('Sent', payload);
         } catch (e) {
             this.pushLog('Send failed', e);
-            logger.error('send failed', e);
         }
     };
 

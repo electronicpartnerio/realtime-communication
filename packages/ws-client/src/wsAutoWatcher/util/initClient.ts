@@ -18,6 +18,7 @@ export const initClient = (client: WsServiceFunction) => {
 
         updateMessageState(msg.id, msg.state);
         const handler = messageStateMap[msg.state];
+
         if (handler) {
             await handler(msg)
         }
