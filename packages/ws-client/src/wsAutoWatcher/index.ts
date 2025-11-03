@@ -46,6 +46,7 @@ export const wsAutoWatcher = () => {
         }
 
         if (!watcherCache.has(id)) return;
+
         const current = watcherCache.get(id)!;
         watcherCache.set(id, { ...current, ...payload });
         writeWatcherCache();

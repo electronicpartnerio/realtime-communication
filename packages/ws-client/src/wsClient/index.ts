@@ -68,6 +68,7 @@ export const wsClient = (opts: WsServiceOptions): WsService => {
     const send = (data: WSData, sendOpts?: SendOptions) => {
         if (!ws || ws.readyState !== WS.OPEN) throw new Error('WebSocket is not open');
         if (sendOpts?.persist) {
+
             safePersistToSession(key, {
                 url: opts.url,
                 authToken: opts.authToken,
@@ -76,8 +77,7 @@ export const wsClient = (opts: WsServiceOptions): WsService => {
             });
 
             const parsed = safeParse<any>(data);
-            const payload = parsed?.data;
-            if (payload) ensureWatcher().register(opts.url, payload);
+            if (parsed) ensureWatcher().register(opts.url, parsed);
         }
 
         ws.send(data);
