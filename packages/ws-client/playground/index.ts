@@ -1,10 +1,8 @@
 import {customElement, property, state} from 'lit/decorators.js';
 import {html, LitElement} from 'lit';
 import {playgroundStyle} from './style';
-import wsClient, {wsAutoWatcher} from '../src';
-
-window.EP.wsWatcher = wsAutoWatcher();
-window.EP.wsWatcher.init();
+import wsClient from '../src';
+import {logger} from "../src/util/logger";
 
 type Outcome = 'success' | 'error';
 type SuccessType = 'download' | 'alert' | 'forceReload' | '';
@@ -42,8 +40,7 @@ export class Playground extends LitElement {
 
     private pushLog = (msg: string, obj?: any) => {
         const time = new Date().toISOString().split('T')[1].replace('Z', '');
-        // eslint-disable-next-line no-console
-        console.log(`${time}  ${msg}`, obj ?? '');
+        logger.log(`${time}  ${msg}`, obj ?? '');
     };
 
     private connect = async () => {
@@ -55,23 +52,23 @@ export class Playground extends LitElement {
                 authToken: this.authToken || undefined,
             });
             if (!this.msgListenerAttached) {
-                this.client.on('message', (e) => {
+                this.client!.on('message', (e) => {
                     // Alle eingehenden Server-Messages in der Konsole zeigen (z. B. „Chat“-ähnlich)
                     try {
                         const data = JSON.parse((e as MessageEvent).data);
-                        console.log('[WS message]', data);
+                        logger.log('[WS message]', data);
                     } catch {
-                        console.log('[WS message]', (e as MessageEvent).data);
+                        logger.log('[WS message]', (e as MessageEvent).data);
                     }
                 });
                 this.msgListenerAttached = true;
             }
-            await this.client.ready();
+            await this.client!.ready();
             this.connected = true;
             this.pushLog('Connected', {url: this.wsUrl});
         } catch (e) {
             this.pushLog('Connect failed', e);
-            console.error('connect failed', e);
+            logger.error('connect failed', e);
         } finally {
             this.connecting = false;
         }
@@ -151,7 +148,7 @@ export class Playground extends LitElement {
             this.pushLog('Sent', payload);
         } catch (e) {
             this.pushLog('Send failed', e);
-            console.error('send failed', e);
+            logger.error('send failed', e);
         }
     };
 
