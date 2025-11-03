@@ -106,7 +106,7 @@ describe('wsClient', () => {
 
         const payload = { id: 'u1', data: { foo: 1 } };
         // safeParse soll das versendete JSON in { data: ... } auflösen
-        (safeParse as vi.Mock).mockReturnValueOnce({ data: payload });
+        (safeParse as vi.Mock).mockReturnValueOnce(payload);
 
         c.send(JSON.stringify(payload), { persist: true });
 
@@ -119,7 +119,7 @@ describe('wsClient', () => {
 
         const watcher = wsAutoWatcher() as any;
         const registerMock = (wsAutoWatcher as any).__registerMock as vi.Mock;
-        expect(registerMock).toHaveBeenCalledWith('wss://persist', payload);
+        expect(registerMock).toHaveBeenCalledWith('wss://persist',   payload.id, payload.data);
     });
 
     it('send() mit persist, aber ohne parsebare payload.data → kein watcher.register', async () => {

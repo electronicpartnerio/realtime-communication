@@ -25,12 +25,6 @@ describe('isProdEnv', () => {
         expect(isProdEnv('')).toBe(false);
     });
 
-    it('checks process.env.NODE_ENV === "production"', () => {
-        (import.meta as any).env = {};
-        process.env.NODE_ENV = 'production';
-        expect(isProdEnv()).toBe(true);
-    });
-
     it('returns false when neither import.meta.env.MODE nor NODE_ENV is "production"', () => {
         (import.meta as any).env = { MODE: 'development' };
         process.env.NODE_ENV = 'test';

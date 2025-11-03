@@ -72,7 +72,7 @@ describe('wsAutoWatcher', () => {
         const watcher = wsAutoWatcher();
 
         const payload = { id: 'm1', foo: 1 };
-        watcher.register('wss://x', payload);
+        watcher.register('wss://x', payload.id, payload);
 
         const entry = (watcherCache as Map<string, any>).get('m1');
         expect(entry).toMatchObject({
@@ -87,14 +87,14 @@ describe('wsAutoWatcher', () => {
 
     it('register() ignoriert payload ohne id', () => {
         const watcher = wsAutoWatcher();
-        watcher.register('wss://x', { foo: 1 } as any);
+        watcher.register('wss://x', null, { foo: 1 } as any);
         expect((watcherCache as Map<string, any>).size).toBe(0);
         expect(writeWatcherCache).not.toHaveBeenCalled();
     });
 
     it('update() merged existierenden Eintrag (kein success/error) – (Hinweis: persist fehlt aktuell)', () => {
         const watcher = wsAutoWatcher();
-        watcher.register('wss://x', { id: 'm2'});
+        watcher.register('wss://x', 'm2', { id: 'm2'});
 
         watcher.update({ id: 'm2', state: 'pending', payload: { a: 1 } });
 
@@ -107,7 +107,7 @@ describe('wsAutoWatcher', () => {
 
     it('update() bei success/error → unregister()', () => {
         const watcher = wsAutoWatcher();
-        watcher.register('wss://x', { id: 'm3' });
+        watcher.register('wss://x', 'm3', { id: 'm3' });
 
         watcher.update({ id: 'm3', state: 'success' });
 
@@ -124,7 +124,7 @@ describe('wsAutoWatcher', () => {
 
     it('unregister() löscht und persisted', () => {
         const watcher = wsAutoWatcher();
-        watcher.register('wss://x', { id: 'm4' });
+        watcher.register('wss://x','m4',  { id: 'm4' });
 
         watcher.unregister('m4');
 
@@ -134,8 +134,8 @@ describe('wsAutoWatcher', () => {
 
     it('list() gibt Werte als Array zurück', () => {
         const watcher = wsAutoWatcher();
-        watcher.register('wss://x', { id: 'a' });
-        watcher.register('wss://y', { id: 'b' });
+        watcher.register('wss://x', 'a', { id: 'a' });
+        watcher.register('wss://y', 'b', { id: 'b' });
 
         const list = watcher.list();
         expect(Array.isArray(list)).toBe(true);
@@ -144,7 +144,7 @@ describe('wsAutoWatcher', () => {
 
     it('clear() leert Cache und entfernt Storage-Key', () => {
         const watcher = wsAutoWatcher();
-        watcher.register('wss://x', { id: 'a' });
+        watcher.register('wss://x', 'a', { id: 'a' });
 
         watcher.clear();
 

@@ -21,9 +21,8 @@ export const wsAutoWatcher = () => {
         logger.info('[wsAutoWatcher] initialisiert:', watcherCache.size, 'Nachrichten im Cache');
     };
 
-
-    const register = (url: string, payload: WsLoosePayload) => {
-        const {id, state} = payload;
+    const register = (url: string, id: string, payload: WsLoosePayload) => {
+        const {state} = payload;
 
         if(!id) return;
 
