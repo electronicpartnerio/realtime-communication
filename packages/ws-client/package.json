@@ -1,6 +1,6 @@
 {
     "name": "@electronicpartnerio/realtime-communication-ws-client",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "realtime communication websocket client",
     "homepage": "https://github.com/electronicpartnerio/realtime-communication#readme",
     "bugs": {
@@ -64,6 +64,6 @@
     },
     "dependencies": {
         "@electronicpartnerio/ep-lit-translate": "^0.0.6",
-        "@electronicpartnerio/uic": "file:/Users/d_wessner/projects/uic/electronicpartnerio-uic-0.0.60-flo-8.tgz"
+        "@electronicpartnerio/uic": "^0.0.65"
     }
 }
